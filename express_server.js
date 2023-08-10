@@ -32,6 +32,15 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+//Route to display a single URL and its shortened form
+app.get("/urls/:id", (req, res) => {
+  // Get the shortURL from the route parameter using req.params.id
+  const shortURL = req.params.id;
+  const longURL = urlDatabase[shortURL]; // Look up the corresponding longURL from the urlDatabase using the extracted shortURL
+  const templateVars = { id: shortURL, longURL: longURL }; /*Create an object containing the extracted shortURL and the corresponding longURL*/
+  res.render("urls_show", templateVars);
+
+});
 
 //Make the server listen on port 8080
 app.listen(PORT, () => {
