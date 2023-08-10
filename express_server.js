@@ -15,13 +15,23 @@ app.get("/", (req, res) => {
 });
 
 app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
+  // res.send("<html><body>Hello <b>World</b></body></html>\n");
+  const templateVars = { greeting: "Hello World!" };
+  res.render("hello_world", templateVars);
 });
 
 // Route that will return the urlDatabase object as a JSON response
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
+
+// use res.render to load up an ejs view file
+// Route handler for /urls
+app.get("/urls", (req, res) => {
+  const templateVars = { urls: urlDatabase };
+  res.render("urls_index", templateVars);
+});
+
 
 //Make the server listen on port 8080
 app.listen(PORT, () => {
