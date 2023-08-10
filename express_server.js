@@ -7,8 +7,12 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 // Route that responds with "Hello!" for requests to the root path(/)
-app.get("/", (req, res) => {  
+app.get("/", (req, res) => {
   res.send("Hello!");
+});
+
+app.get("/hello", (req, res) => {
+  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 // Route that will return the urlDatabase object as a JSON response
