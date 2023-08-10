@@ -2,11 +2,14 @@ const express = require("express"); //Require the express library
 const app = express(); // Call our app as an instance of express
 const PORT = 8080; // default port 8080
 
+// set the view engine to ejs
+app.set("view engine", "ejs");
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
-// Route that responds with "Hello!" for requests to the root path(/)
+//index page, Route that responds with "Hello!" for requests to the root path(/)
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
