@@ -15,6 +15,25 @@ app.set("view engine", "ejs");
 
 app.use(express.urlencoded({ extended: true })); //for parsing the body of POST requests
 
+////////////////////////////////////////////////////////////////////////////////
+/* Listner */
+////////////////////////////////////////////////////////////////////////////////
+
+//Make the server listen on port 8080
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
+});
+
+const generateRandomString = () => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let randomString = '';
+  for (let i = 0; i < 6; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    randomString += characters[randomIndex];
+  }
+  return randomString;
+};
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -47,8 +66,14 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-//Route to display the form
-app.get("/urls/new", (req,res) => {
+//Route to receive the form submission
+app.post("/urls", (req, res) => {
+  console.log(req.body); // Log the POST request body to the console
+  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+});
+
+//Route to render urls_new template
+app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
@@ -59,13 +84,4 @@ app.get("/urls/:id", (req, res) => {
   const longURL = urlDatabase[shortURL]; // Look up the corresponding longURL from the urlDatabase using the extracted shortURL
   const templateVars = { id: shortURL, longURL: longURL }; /*Create an object containing the extracted shortURL and the corresponding longURL*/
   res.render("urls_show", templateVars);
-});
-
-////////////////////////////////////////////////////////////////////////////////
-/* Listner */
-////////////////////////////////////////////////////////////////////////////////
-
-//Make the server listen on port 8080
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
 });
