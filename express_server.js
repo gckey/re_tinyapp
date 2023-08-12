@@ -69,12 +69,23 @@ app.get("/urls", (req, res) => {
 //Route to receive the form submission
 app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  const randomString = generateRandomString(); //Generate a unique id for shortURL
+  // save the id and longURL pair to urlDatabase 
+  urlDatabase[randomString] = req.body.longURL;
+  console.log("New urlDB:", urlDatabase);
+  res.redirect(`/urls/${randomString}`);
+  // res.send("Ok"); // Respond with 'Ok' (we will replace this)
 });
 
 //Route to render urls_new template
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
+});
+
+// Route to redirect directly to longURL 
+app.get("/u/:id", (req, res) => {
+  const longURL = urlDatabase[req.params.id];//look up the longURL in urlDatabase
+  res.redirect(longURL);
 });
 
 //Route to display a single URL and its shortened form
