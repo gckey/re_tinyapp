@@ -68,11 +68,11 @@ app.get("/urls", (req, res) => {
 
 //Route to receive the form submission
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
+  // console.log(req.body); // Log the POST request body to the console
   const randomString = generateRandomString(); //Generate a unique id for shortURL
   // save the id and longURL pair to urlDatabase 
   urlDatabase[randomString] = req.body.longURL;
-  console.log("New urlDB:", urlDatabase);
+  // console.log("New urlDB:", urlDatabase);
   res.redirect(`/urls/${randomString}`);
   // res.send("Ok"); // Respond with 'Ok' (we will replace this)
 });
@@ -95,4 +95,11 @@ app.get("/urls/:id", (req, res) => {
   const longURL = urlDatabase[shortURL]; // Look up the corresponding longURL from the urlDatabase using the extracted shortURL
   const templateVars = { id: shortURL, longURL: longURL }; /*Create an object containing the extracted shortURL and the corresponding longURL*/
   res.render("urls_show", templateVars);
+});
+
+// Delete route
+app.post("/urls/:id/delete", (req, res) => {
+  const id = req.params.id;
+  delete urlDatabase[id];
+  res.redirect("/urls");
 });
