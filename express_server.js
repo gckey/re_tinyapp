@@ -1,4 +1,8 @@
+////////////////////////////////////////////////////////////////////////////////
+/* Requires */
+////////////////////////////////////////////////////////////////////////////////
 const express = require("express"); //Require the express library
+const morgan = require("morgan"); //To tell what routes are being pinged, useful for debugging
 
 ////////////////////////////////////////////////////////////////////////////////
 /* Configuration */
@@ -14,6 +18,7 @@ app.set("view engine", "ejs");
 ////////////////////////////////////////////////////////////////////////////////
 
 app.use(express.urlencoded({ extended: true })); //for parsing the body of POST requests
+app.use(morgan("dev"));
 
 ////////////////////////////////////////////////////////////////////////////////
 /* Listner */
@@ -34,6 +39,7 @@ const generateRandomString = () => {
   return randomString;
 };
 
+//Database
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -109,5 +115,13 @@ app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const newURL = req.body.longURL;
   urlDatabase[id] = newURL;
+  res.redirect("/urls");
+});
+
+//Route to handle login
+app.post("/login", (req, res) => {
+  // console.log("POST login: req.body", req.body);
+  const username = req.body.username;
+  res.cookie("username", username); //Sets cookie username to value
   res.redirect("/urls");
 });
