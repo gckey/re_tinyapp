@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 const express = require("express"); //Require the express library
 const morgan = require("morgan"); //To tell what routes are being pinged, useful for debugging
+const cookieParser = require("cookie-parser");
 
 ////////////////////////////////////////////////////////////////////////////////
 /* Configuration */
@@ -19,6 +20,7 @@ app.set("view engine", "ejs");
 
 app.use(express.urlencoded({ extended: true })); //for parsing the body of POST requests
 app.use(morgan("dev"));
+app.use(cookieParser());
 
 ////////////////////////////////////////////////////////////////////////////////
 /* Listner */
@@ -68,7 +70,11 @@ app.get("/urls.json", (req, res) => {
 // use res.render to load up an ejs view file
 // Route handler for /urls
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  // const templateVars = { urls: urlDatabase };
+  const templateVars = {
+    username: req.cookies["username"],
+    urls: urlDatabase
+  };
   res.render("urls_index", templateVars);
 });
 
@@ -85,7 +91,10 @@ app.post("/urls", (req, res) => {
 
 //Route to render urls_new template
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = {
+    username: req.cookies["username"]
+  };
+  res.render("urls_new", templateVars);
 });
 
 // Route to redirect directly to longURL 
@@ -99,7 +108,8 @@ app.get("/urls/:id", (req, res) => {
   // Get the shortURL from the route parameter using req.params.id
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL]; // Look up the corresponding longURL from the urlDatabase using the extracted shortURL
-  const templateVars = { id: shortURL, longURL: longURL }; /*Create an object containing the extracted shortURL and the corresponding longURL*/
+
+  const templateVars = { id: shortURL, longURL: longURL, username: req.cookies["username"] }; /*Create an object containing the extracted shortURL and the corresponding longURL*/
   res.render("urls_show", templateVars);
 });
 
