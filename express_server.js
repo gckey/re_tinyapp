@@ -135,3 +135,9 @@ app.post("/login", (req, res) => {
   res.cookie("username", username); //Sets cookie username to value
   res.redirect("/urls");
 });
+
+//POST route for logout
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");//clears key-value pair
+  res.redirect("/urls");
+});
