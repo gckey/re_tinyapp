@@ -23,7 +23,7 @@ app.use(morgan("dev"));
 app.use(cookieParser());
 
 ////////////////////////////////////////////////////////////////////////////////
-/* Listner */
+/* Listener (Initiate Server)*/
 ////////////////////////////////////////////////////////////////////////////////
 
 //Make the server listen on port 8080
@@ -140,4 +140,12 @@ app.post("/login", (req, res) => {
 app.post("/logout", (req, res) => {
   res.clearCookie("username");//clears key-value pair
   res.redirect("/urls");
+});
+
+/*** 
+ * Registration Page
+*/
+app.get("/register", (req, res) => {
+  const templateVars = { username: req.body["username"] };
+  res.render("urls_register", templateVars);
 });
