@@ -10,8 +10,8 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
-      <% if(username) {%> <!-- checks if username exist -->
-        <strong>&nbsp Logged in as:&nbsp<%= username %>!</strong>
+      <% if(user) {%>
+        <strong>&nbsp Logged in as:&nbsp<%= user.email %>!</strong>
         <form method="POST" action="/logout" class="form-inline">
           <div class="form-group mb-1">
             &nbsp&nbsp
