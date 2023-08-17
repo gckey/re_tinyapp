@@ -4,6 +4,7 @@
 const express = require("express"); //Require the express library
 const morgan = require("morgan"); //To tell what routes are being pinged, useful for debugging
 const cookieParser = require("cookie-parser");
+const { emit } = require("nodemon");
 
 ////////////////////////////////////////////////////////////////////////////////
 /* Configuration */
@@ -47,6 +48,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 /* Routes */
 ////////////////////////////////////////////////////////////////////////////////
@@ -71,8 +85,9 @@ app.get("/urls.json", (req, res) => {
 // Route handler for /urls
 app.get("/urls", (req, res) => {
   // const templateVars = { urls: urlDatabase };
+  const userObj = users[req.cookies.user_id];
   const templateVars = {
-    username: req.cookies["username"],
+    user: userObj,
     urls: urlDatabase
   };
   res.render("urls_index", templateVars);
@@ -91,8 +106,9 @@ app.post("/urls", (req, res) => {
 
 //Route to render urls_new template
 app.get("/urls/new", (req, res) => {
+  const userObj = users[req.cookies.user_id];
   const templateVars = {
-    username: req.cookies["username"]
+    user: userObj
   };
   res.render("urls_new", templateVars);
 });
@@ -108,8 +124,9 @@ app.get("/urls/:id", (req, res) => {
   // Get the shortURL from the route parameter using req.params.id
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL]; // Look up the corresponding longURL from the urlDatabase using the extracted shortURL
-
-  const templateVars = { id: shortURL, longURL: longURL, username: req.cookies["username"] }; /*Create an object containing the extracted shortURL and the corresponding longURL*/
+  const userObj = users[req.cookies.user_id];
+  /*Create an object containing the extracted shortURL and the corresponding longURL*/
+  const templateVars = { id: shortURL, longURL: longURL, user: userObj };
   res.render("urls_show", templateVars);
 });
 
@@ -138,14 +155,39 @@ app.post("/login", (req, res) => {
 
 //POST route for logout
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");//clears key-value pair
+  res.clearCookie("user_id");//clears key-value pair
   res.redirect("/urls");
 });
 
 /*** 
  * Registration Page
 */
+
+//Show registeration form
 app.get("/register", (req, res) => {
-  const templateVars = { username: req.body["username"] };
+  // const templateVars = { username: req.body["username"] };
+  const userObj = users[req.cookies.user_id];
+  const templateVars = {
+    user: userObj,
+    urls: urlDatabase
+  };
   res.render("urls_register", templateVars);
+});
+
+// Handle register form submission
+app.post("/register", (req, res) => {
+  const userID = generateRandomString();
+  const newEmail = req.body.email;
+  const newPassword = req.body.password;
+  // Create new user object
+  const newUser = {
+    id: userID,
+    email: newEmail,
+    password: newPassword
+  };
+  //Add new user to database variable
+  users[userID] = newUser;
+  console.log("POST Register users obj", users);
+  res.cookie("user_id", userID);//Set userid cookie
+  res.redirect("/urls");
 });
