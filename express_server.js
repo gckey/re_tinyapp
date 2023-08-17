@@ -42,6 +42,17 @@ const generateRandomString = () => {
   return randomString;
 };
 
+// Lookup a user by email address
+const getUserByEmail = (userEmail) => {
+  for (const userID in users) {
+    const user = users[userID];
+    if (user.email === userEmail) {
+      return user;
+    }
+  }
+  return null;
+};
+
 //Database
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -163,7 +174,7 @@ app.post("/logout", (req, res) => {
  * Registration Page
 */
 
-//Show registeration form
+//Show registration form
 app.get("/register", (req, res) => {
   // const templateVars = { username: req.body["username"] };
   const userObj = users[req.cookies.user_id];
@@ -177,17 +188,25 @@ app.get("/register", (req, res) => {
 // Handle register form submission
 app.post("/register", (req, res) => {
   const userID = generateRandomString();
-  const newEmail = req.body.email;
-  const newPassword = req.body.password;
-  // Create new user object
-  const newUser = {
-    id: userID,
-    email: newEmail,
-    password: newPassword
-  };
-  //Add new user to database variable
-  users[userID] = newUser;
-  console.log("POST Register users obj", users);
-  res.cookie("user_id", userID);//Set userid cookie
-  res.redirect("/urls");
+  //Get the data from the html body
+  const userEmail = req.body.email;
+  const userPassword = req.body.password;
+  //Check if email or password are empty
+  if (!userEmail || !userPassword) {
+    res.status(400).end("<p>Please Enter Email and/or Password!</p>");
+  } else if (getUserByEmail(userEmail)) { //check if email already exist or not
+    res.status(400).send("<p>Email address is already exists !!!</p>");
+  } else {
+    // Create new user object
+    const newUser = {
+      id: userID,
+      email: userEmail,
+      password: userPassword
+    };
+    //Add new user to database variable
+    users[userID] = newUser;
+    console.log("POST Register users obj", users);
+    res.cookie("user_id", userID);//Set userid cookie
+    res.redirect("/urls");
+  }
 });
