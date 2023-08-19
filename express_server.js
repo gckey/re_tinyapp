@@ -169,15 +169,29 @@ app.get("/login", (req, res) => {
 //Route to handle login
 app.post("/login", (req, res) => {
   console.log("POST login: req.body", req.body);
-  const username = req.body.username;
-  res.cookie("username", username); //Sets cookie username to value
+  
+  const email = req.body.email;
+  const password = req.body.password;
+  const foundUser = getUserByEmail(email);
+
+  //Check if a user submitted form with username and password
+  if(!email || !password) {
+    return res.status(403).send("<p>Please Enter unername and/or password</p>");
+  } else if(!foundUser) { //Check if there is no user that matches
+    return res.status(403).send("<p>User does not exist.</p>");
+  } else if(foundUser.password !== password) {
+    return res.status(403).send("Incorrect Password!");
+  } else {
+
+  res.cookie("user_id", foundUser.id); //Sets cookie
   res.redirect("/urls");
+  };
 });
 
 //POST route for logout
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");//clears key-value pair
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
 /*** 
