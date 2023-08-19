@@ -7,8 +7,8 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav">
-        <a class="nav-item nav-link" href="/urls">My URLs</a>
-        <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+        <strong><a class="nav-item nav-link" href="/urls">My URLs</a></strong>
+        <strong><a class="nav-item nav-link" href="/urls/new">Create New URL</a></strong>
       </div>
       <% if(user) {%>
         <strong>&nbsp Logged in as:&nbsp<%= user.email %>!</strong>
@@ -19,14 +19,12 @@
           </div>
         </form>
         <% } else { %>
-          <form method="POST" action="/login" class="form-inline">
-            <div class="form-group mb-1">
-              <input class="form-control" type="text" name="username" placeholder="Username"
-                style="width: 250px; margin: 1em;">
-              <input type="submit" value="Login" class="btn btn-outline-dark">
-            </div>
-          </form>
-          <% } %>
+          <div class="navbar-nav ml-auto">
+            <strong><a class="nav-item nav-link" href="/login">Login</a></strong>
+            <strong><a class="nav-item nav-link" href="/register">Register</a></strong>
+          </div>
     </div>
+    <% } %>
+      </div>
   </nav>
 </header>
