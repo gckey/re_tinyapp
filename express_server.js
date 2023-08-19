@@ -156,9 +156,19 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
+//Show login form
+app.get("/login", (req, res) => {
+  // console.log(req.cookies);
+  const userObj = users[req.cookies.user_id];
+  const templateVars = {
+    user: userObj
+  };
+  res.render("urls_login", templateVars);
+});
+
 //Route to handle login
 app.post("/login", (req, res) => {
-  // console.log("POST login: req.body", req.body);
+  console.log("POST login: req.body", req.body);
   const username = req.body.username;
   res.cookie("username", username); //Sets cookie username to value
   res.redirect("/urls");
