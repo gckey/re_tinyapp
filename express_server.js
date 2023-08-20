@@ -107,27 +107,43 @@ app.get("/urls", (req, res) => {
 //Route to receive the form submission
 app.post("/urls", (req, res) => {
   // console.log(req.body); // Log the POST request body to the console
+  if (!req.cookies.user_id) {
+    res.redirect("/login");
+    return;
+  }
+  if (!req.body.longURL) {
+    res.redirect("/urls/new");
+    return;
+  }
   const randomString = generateRandomString(); //Generate a unique id for shortURL
   // save the id and longURL pair to urlDatabase 
   urlDatabase[randomString] = req.body.longURL;
   // console.log("New urlDB:", urlDatabase);
   res.redirect(`/urls/${randomString}`);
-  // res.send("Ok"); // Respond with 'Ok' (we will replace this)
 });
 
 //Route to render urls_new template
 app.get("/urls/new", (req, res) => {
-  const userObj = users[req.cookies.user_id];
-  const templateVars = {
-    user: userObj
-  };
-  res.render("urls_new", templateVars);
+  const user_id = req.cookies.user_id;
+  const userObj = users[user_id];
+  if (!user_id) {
+    res.redirect("/login");
+  } else {
+    const templateVars = {
+      user: userObj
+    };
+    res.render("urls_new", templateVars);
+  }
 });
 
 // Route to redirect directly to longURL 
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];//look up the longURL in urlDatabase
-  res.redirect(longURL);
+  if (longURL === undefined) {
+    res.status(404).send("Short URL does not exist");
+  } else {
+    res.redirect(302, longURL);
+  }
 });
 
 //Route to display a single URL and its shortened form
@@ -159,32 +175,35 @@ app.post("/urls/:id", (req, res) => {
 //Show login form
 app.get("/login", (req, res) => {
   // console.log(req.cookies);
-  const userObj = users[req.cookies.user_id];
-  const templateVars = {
-    user: userObj
-  };
-  res.render("urls_login", templateVars);
+  const user_id = req.cookies.user_id;
+  if (user_id) {
+    return res.redirect("/urls");
+  } else {
+    const userObj = users[req.cookies.user_id];
+    const templateVars = {
+      user: userObj
+    };
+    res.render("urls_login", templateVars);
+  }
 });
 
 //Route to handle login
 app.post("/login", (req, res) => {
   console.log("POST login: req.body", req.body);
-  
   const email = req.body.email;
   const password = req.body.password;
   const foundUser = getUserByEmail(email);
 
   //Check if a user submitted form with username and password
-  if(!email || !password) {
+  if (!email || !password) {
     return res.status(403).send("<p>Please Enter unername and/or password</p>");
-  } else if(!foundUser) { //Check if there is no user that matches
+  } else if (!foundUser) { //Check if there is no user that matches
     return res.status(403).send("<p>User does not exist.</p>");
-  } else if(foundUser.password !== password) {
+  } else if (foundUser.password !== password) {
     return res.status(403).send("Incorrect Password!");
   } else {
-
-  res.cookie("user_id", foundUser.id); //Sets cookie
-  res.redirect("/urls");
+    res.cookie("user_id", foundUser.id); //Sets cookie
+    res.redirect("/urls");
   };
 });
 
@@ -201,12 +220,17 @@ app.post("/logout", (req, res) => {
 //Show registration form
 app.get("/register", (req, res) => {
   // const templateVars = { username: req.body["username"] };
-  const userObj = users[req.cookies.user_id];
-  const templateVars = {
-    user: userObj,
-    urls: urlDatabase
-  };
-  res.render("urls_register", templateVars);
+  const user_id = req.cookies.user_id;
+  if (user_id) {
+    res.redirect("/urls");
+  } else {
+    const userObj = users[req.cookies.user_id];
+    const templateVars = {
+      user: userObj,
+      urls: urlDatabase
+    };
+    res.render("urls_register", templateVars);
+  }
 });
 
 // Handle register form submission
