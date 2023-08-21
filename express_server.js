@@ -5,6 +5,7 @@ const express = require("express"); //Require the express library
 const morgan = require("morgan"); //To tell what routes are being pinged, useful for debugging
 const cookieParser = require("cookie-parser");
 const { emit } = require("nodemon");
+const bcrypt = require("bcryptjs");
 
 ////////////////////////////////////////////////////////////////////////////////
 /* Configuration */
@@ -80,12 +81,12 @@ const users = {
   userRandomID: {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+    password: "$2a$10$Q4m3QVTQxJdVc93k/ayykOqCZiUQ9KWDIshTHlVQag5ISTOWVCJs.",
   },
   user2RandomID: {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk",
+    password: "$2a$10$S1d1yBcug6/pvGOuGwsONOBYT9um4vxLXV/Dds35ZGATQdBhp6me6",
   },
 };
 
@@ -177,7 +178,7 @@ app.get("/urls/:id", (req, res) => {
 
   // Check to see if a user is logged in or not
   if (!userObj) {
-    return res.status(403).send("Please log in first");
+    return res.status(403).send("Please log in first to TinyApp");
   }
 
   // Check if the URL does not exist
@@ -243,7 +244,7 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
-//Show login form
+//Display login form
 app.get("/login", (req, res) => {
   // console.log(req.cookies);
   const user_id = req.cookies.user_id;
@@ -258,7 +259,7 @@ app.get("/login", (req, res) => {
   }
 });
 
-//Route to handle login
+// Submission of the login form
 app.post("/login", (req, res) => {
   console.log("POST login: req.body", req.body);
   const email = req.body.email;
@@ -270,8 +271,8 @@ app.post("/login", (req, res) => {
     return res.status(403).send("<p>Please Enter unername and/or password</p>");
   } else if (!foundUser) { //Check if there is no user that matches
     return res.status(403).send("<p>User does not exist.</p>");
-  } else if (foundUser.password !== password) {
-    return res.status(403).send("Incorrect Password!");
+  } else if (!bcrypt.compareSync(password, foundUser.password)) {
+    return res.status(403).send("Your Password do not match. Please try again.");
   } else {
     res.cookie("user_id", foundUser.id); //Sets cookie
     res.redirect("/urls");
@@ -310,6 +311,9 @@ app.post("/register", (req, res) => {
   //Get the data from the html body
   const userEmail = req.body.email;
   const userPassword = req.body.password;
+  const salt = bcrypt.genSaltSync(10);
+  const hash = bcrypt.hashSync(userPassword, salt);
+
   // Check if username and password is provided
   if (!userEmail || !userPassword) {
     res.status(400).send("Please Enter Email and/or Password!</p>");
@@ -320,7 +324,7 @@ app.post("/register", (req, res) => {
     const newUser = {
       id: userID,
       email: userEmail,
-      password: userPassword
+      password: hash
     };
     //Add new user to database variable
     users[userID] = newUser;
