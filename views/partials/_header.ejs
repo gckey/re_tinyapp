@@ -11,7 +11,7 @@
         <strong><a class="nav-item nav-link" href="/urls/new">Create New URL</a></strong>
       </div>
       <% if(user) {%>
-        <strong>&nbsp Logged in as:&nbsp<%= user.email %>!</strong>
+        <strong class="navbar-nav ml-auto">&nbsp Logged in as:&nbsp<%= user.email %>!</strong>
         <form method="POST" action="/logout" class="form-inline">
           <div class="form-group mb-1">
             &nbsp&nbsp
