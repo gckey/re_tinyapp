@@ -3,7 +3,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 const express = require("express"); //Require the express library
 const morgan = require("morgan"); //To tell what routes are being pinged, useful for debugging
-// const cookieParser = require("cookie-parser");
 const { emit } = require("nodemon");
 const bcrypt = require("bcryptjs");
 const cookieSession = require('cookie-session');
@@ -24,10 +23,8 @@ app.set("view engine", "ejs");
 
 app.use(express.urlencoded({ extended: true })); //for parsing the body of POST requests
 app.use(morgan("dev"));
-// app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
-  // keys: ['key1', 'key2'],
   secret: 'so-dry',
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
@@ -77,7 +74,6 @@ app.get("/", (req, res) => {
 });
 
 app.get("/hello", (req, res) => {
-  // res.send("<html><body>Hello <b>World</b></body></html>\n");
   const templateVars = { greeting: "Hello World!" };
   res.render("hello_world", templateVars);
 });
@@ -90,7 +86,6 @@ app.get("/urls.json", (req, res) => {
 // use res.render to load up an ejs view file
 // Route handler for /urls
 app.get("/urls", (req, res) => {
-  // const templateVars = { urls: urlDatabase };
   const userObj = users[req.session.user_id];
   const templateVars = {
     user: userObj,
@@ -101,7 +96,6 @@ app.get("/urls", (req, res) => {
 
 //Route to receive the form submission
 app.post("/urls", (req, res) => {
-  // console.log(req.body); // Log the POST request body to the console
   if (!req.session.user_id) {
     res.redirect("/login");
     return;
@@ -176,7 +170,6 @@ app.get("/urls/:id", (req, res) => {
 // Delete route
 app.post("/urls/:id/delete", (req, res) => {
   const id = req.params.id;
-  // const userID = req.cookies.userID;
   const userObj = users[req.session.user_id];
   const userID = userObj && userObj.id;
   const urlInfo = urlDatabase[id];
@@ -223,7 +216,6 @@ app.post("/urls/:id", (req, res) => {
 
 //Display login form
 app.get("/login", (req, res) => {
-  // console.log(req.cookies);
   const user_id = req.session.user_id;
   if (user_id) {
     return res.redirect("/urls");
@@ -251,7 +243,6 @@ app.post("/login", (req, res) => {
   } else if (!bcrypt.compareSync(password, foundUser.password)) {
     return res.status(403).send("Your Password do not match. Please try again.");
   } else {
-    // res.cookie("user_id", foundUser.id); //Sets cookie
     req.session.user_id = foundUser.id;
     res.redirect("/urls");
   };
@@ -259,7 +250,6 @@ app.post("/login", (req, res) => {
 
 //POST route for logout
 app.post("/logout", (req, res) => {
-  // res.clearCookie("user_id");//clears key-value pair
   req.session = null;
   res.redirect("/login");
 });
@@ -270,7 +260,6 @@ app.post("/logout", (req, res) => {
 
 //Show registration form
 app.get("/register", (req, res) => {
-  // const templateVars = { username: req.body["username"] };
   const user_id = req.session.user_id;
   if (user_id) {
     res.redirect("/urls");
@@ -308,7 +297,6 @@ app.post("/register", (req, res) => {
     //Add new user to database variable
     users[userID] = newUser;
     console.log("POST Register users obj", users);
-    // res.cookie("user_id", userID);//Set userid cookie
     req.session.user_id = userID;
     res.redirect("/urls");
   }
