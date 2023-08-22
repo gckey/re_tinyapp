@@ -7,6 +7,7 @@ const morgan = require("morgan"); //To tell what routes are being pinged, useful
 const { emit } = require("nodemon");
 const bcrypt = require("bcryptjs");
 const cookieSession = require('cookie-session');
+const helpers = require("./helpers");
 
 ////////////////////////////////////////////////////////////////////////////////
 /* Configuration */
@@ -40,38 +41,6 @@ app.use(cookieSession({
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-const generateRandomString = () => {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let randomString = '';
-  for (let i = 0; i < 6; i++) {
-    const randomIndex = Math.floor(Math.random() * characters.length);
-    randomString += characters[randomIndex];
-  }
-  return randomString;
-};
-
-// Lookup a user by email address
-const getUserByEmail = (userEmail) => {
-  for (const userID in users) {
-    const user = users[userID];
-    if (user.email === userEmail) {
-      return user;
-    }
-  }
-  return null;
-};
-
-// Return URLS for currently logged in user
-const urlsForUser = (id, urlDatabase) => {
-  const userURLs = {};
-  for (const shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userID === id) {
-      userURLs[shortURL] = urlDatabase[shortURL];
-    }
-  }
-  return userURLs;
-};
 
 //Database
 const urlDatabase = {
@@ -125,7 +94,7 @@ app.get("/urls", (req, res) => {
   const userObj = users[req.session.user_id];
   const templateVars = {
     user: userObj,
-    urls: urlsForUser(req.session.user_id, urlDatabase)
+    urls: helpers.urlsForUser(req.session.user_id, urlDatabase)
   };
   res.render("urls_index", templateVars);
 });
@@ -141,7 +110,7 @@ app.post("/urls", (req, res) => {
     res.redirect("/urls/new");
     return;
   }
-  const randomString = generateRandomString(); //Generate a unique id for shortURL
+  const randomString = helpers.generateRandomString(); //Generate a unique id for shortURL
   const longURL = req.body.longURL;
   const userId = req.session.user_id;
   // save the id and longURL pair to urlDatabase 
@@ -272,7 +241,7 @@ app.post("/login", (req, res) => {
   console.log("POST login: req.body", req.body);
   const email = req.body.email;
   const password = req.body.password;
-  const foundUser = getUserByEmail(email);
+  const foundUser = helpers.getUserByEmail(email, users);
 
   //Check if a user submitted form with username and password
   if (!email || !password) {
@@ -317,7 +286,7 @@ app.get("/register", (req, res) => {
 
 // Handle register form submission
 app.post("/register", (req, res) => {
-  const userID = generateRandomString();
+  const userID = helpers.generateRandomString();
   //Get the data from the html body
   const userEmail = req.body.email;
   const userPassword = req.body.password;
@@ -327,7 +296,7 @@ app.post("/register", (req, res) => {
   // Check if username and password is provided
   if (!userEmail || !userPassword) {
     res.status(400).send("Please Enter Email and/or Password!</p>");
-  } else if (getUserByEmail(userEmail)) { //check if email already exist or not
+  } else if (helpers.getUserByEmail(userEmail, users)) { //check if email already exist or not
     res.status(400).send("Email address is already exists !!!");
   } else {
     // Create new user object
