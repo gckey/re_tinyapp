@@ -68,14 +68,9 @@ const users = {
 /* Routes */
 ////////////////////////////////////////////////////////////////////////////////
 
-//index page, Route that responds with "Hello!" for requests to the root path(/)
+//index page
 app.get("/", (req, res) => {
-  res.send("Hello!");
-});
-
-app.get("/hello", (req, res) => {
-  const templateVars = { greeting: "Hello World!" };
-  res.render("hello_world", templateVars);
+  res.redirect("/login");
 });
 
 // Route that will return the urlDatabase object as a JSON response
@@ -83,7 +78,6 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-// use res.render to load up an ejs view file
 // Route handler for /urls
 app.get("/urls", (req, res) => {
   const userObj = users[req.session.user_id];
@@ -91,6 +85,7 @@ app.get("/urls", (req, res) => {
     user: userObj,
     urls: helpers.urlsForUser(req.session.user_id, urlDatabase)
   };
+  // use res.render to load up an ejs view file
   res.render("urls_index", templateVars);
 });
 
@@ -130,13 +125,20 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-// Route to redirect directly to longURL 
+// Route to redirect to longURL
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];//look up the longURL in urlDatabase
-  if (!longURL) {
-    res.status(404).send("Short URL does not exist");
+  //Check if the shortURL exisits in the urlDatabase
+  if (urlDatabase[req.params.id]) {
+    const longURL = urlDatabase[req.params.id].longURL;//look up the longURL in urlDatabase
+    //Check if the longURL not found
+    if (longURL === undefined) {
+      res.status(302);//the resource requested has been found but there is no longURL
+    } else {
+      res.redirect(longURL); //redirect to the corresponding longURL
+    }
   } else {
-    res.redirect(302, longURL);
+    //Show error msg if the shortURL does not exist
+    res.status(400).send("Short URL does not exist");
   }
 });
 
@@ -169,9 +171,13 @@ app.get("/urls/:id", (req, res) => {
 
 // Delete route
 app.post("/urls/:id/delete", (req, res) => {
+  // Extract the URL id from the route parameter
   const id = req.params.id;
+  // Get the user object from the session using the user_id stored in the session
   const userObj = users[req.session.user_id];
+  // Extract the user's ID from the user object, if it exists
   const userID = userObj && userObj.id;
+  // Retrieve the URL with the specified ID from the urlDatabase
   const urlInfo = urlDatabase[id];
 
   //check if the ID does not exist
@@ -190,8 +196,11 @@ app.post("/urls/:id/delete", (req, res) => {
 
 //Update route
 app.post("/urls/:id", (req, res) => {
+  // Extract the URL id from the route parameter
   const id = req.params.id;
+  // Get the user object from the session using the user_id stored in the session
   const userObj = users[req.session.user_id];
+  // Extract the user's ID from the user object, if it exists
   const userID = userObj && userObj.id;
 
   //check if the URL ID does not exist
@@ -216,10 +225,11 @@ app.post("/urls/:id", (req, res) => {
 
 //Display login form
 app.get("/login", (req, res) => {
+  //Get user_id from the session
   const user_id = req.session.user_id;
   if (user_id) {
-    return res.redirect("/urls");
-  } else {
+    return res.redirect("/urls"); //redirect to /urls if the user is already logged in
+  } else { // If not logged in, extract the user object from the users database using the session's user_id
     const userObj = users[req.session.user_id];
     const templateVars = {
       user: userObj
@@ -231,26 +241,29 @@ app.get("/login", (req, res) => {
 // Submission of the login form
 app.post("/login", (req, res) => {
   console.log("POST login: req.body", req.body);
-  const email = req.body.email;
-  const password = req.body.password;
+  const email = req.body.email; // Get email from the html body
+  const password = req.body.password; //Get the password from the html body
+  //Get the user object associated with the provided email
   const foundUser = helpers.getUserByEmail(email, users);
 
   //Check if a user submitted form with username and password
   if (!email || !password) {
     return res.status(403).send("<p>Please Enter unername and/or password</p>");
-  } else if (!foundUser) { //Check if there is no user that matches
+  } else if (!foundUser) { //Check if the user exists
     return res.status(403).send("<p>User does not exist.</p>");
+    //Check if an entered password matches
   } else if (!bcrypt.compareSync(password, foundUser.password)) {
     return res.status(403).send("Your Password do not match. Please try again.");
   } else {
+    //Set user_id key if email and password are valid
     req.session.user_id = foundUser.id;
-    res.redirect("/urls");
+    res.redirect("/urls"); //After successful log in, redirect the user to the URLS page
   };
 });
 
 //POST route for logout
 app.post("/logout", (req, res) => {
-  req.session = null;
+  req.session = null; // Clear the session
   res.redirect("/login");
 });
 
@@ -260,11 +273,12 @@ app.post("/logout", (req, res) => {
 
 //Show registration form
 app.get("/register", (req, res) => {
+  //Get user_id from the session
   const user_id = req.session.user_id;
-  if (user_id) {
+  if (user_id) { //if user already logged in, redirect to /urls
     res.redirect("/urls");
   } else {
-    const userObj = users[req.session.user_id];
+    const userObj = users[req.session.user_id]; //Get the corresponding user object
     const templateVars = {
       user: userObj,
       urls: urlDatabase
@@ -275,29 +289,33 @@ app.get("/register", (req, res) => {
 
 // Handle register form submission
 app.post("/register", (req, res) => {
+  //create a unique ID
   const userID = helpers.generateRandomString();
-  //Get the data from the html body
+  //Get email data from the html body
   const userEmail = req.body.email;
+  //Get password from the html body
   const userPassword = req.body.password;
+  //generate a salt
   const salt = bcrypt.genSaltSync(10);
+  //Hash the entered user password
   const hash = bcrypt.hashSync(userPassword, salt);
 
-  // Check if username and password is provided
+  // Check if email and password are provided
   if (!userEmail || !userPassword) {
     res.status(400).send("Please Enter Email and/or Password!</p>");
   } else if (helpers.getUserByEmail(userEmail, users)) { //check if email already exist or not
     res.status(400).send("Email address is already exists !!!");
   } else {
-    // Create new user object
+    // Create a new user object with the generated user ID, email, and hashed password
     const newUser = {
       id: userID,
       email: userEmail,
       password: hash
     };
-    //Add new user to database variable
+    //Add new user to user database
     users[userID] = newUser;
     console.log("POST Register users obj", users);
-    req.session.user_id = userID;
+    req.session.user_id = userID; // Set the user_id key on a sesssion with UserID
     res.redirect("/urls");
   }
 });
